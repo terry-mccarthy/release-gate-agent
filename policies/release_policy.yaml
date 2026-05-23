@@ -1,0 +1,9 @@
+version: "Release Agent Policy v2.4"
+AllowedRiskProfiles: [Low, Medium]
+MaximumDiffLines: 350
+RequireTestCoverage: ">= 85%"
+ProhibitedDirectories:
+  - "/src/auth"
+  - "/src/billing"
+  - "/kubernetes/iam"
+StaticAnalysisThreshold: "Zero Critical, Zero High Vulnerabilities"

@@ -1,0 +1,28 @@
+name: scenario_escalate_high_risk
+description: Risk classified as High — must ESCALATE to human review
+diff: |
+  diff --git a/app/auth/token.py b/app/auth/token.py
+  index abc123..def456 100644
+  --- a/app/auth/token.py
+  +++ b/app/auth/token.py
+  @@ -5,6 +5,10 @@ import jwt
+  +def validate_token(token):
+  +    try:
+  +        return jwt.decode(token, options={"verify_signature": False})
+  +    except Exception:
+  +        return None
+mock_risk_classification:
+  data_surface: none
+  integration_depth: high
+  vulnerability_surface: high
+  rationale: "Disables JWT signature verification — critical auth bypass."
+lint_result:
+  warnings: []
+  error_count: 0
+coverage_result:
+  coverage: 0.91
+  lines_covered: 182
+  lines_total: 200
+  source: stub
+expected_verdict: ESCALATE
+expected_risk_profile: Severe

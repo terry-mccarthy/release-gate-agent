@@ -1,0 +1,28 @@
+name: scenario_block_low_coverage
+description: Test coverage at 80%, below 85% threshold — must BLOCK
+diff: |
+  diff --git a/app/utils.py b/app/utils.py
+  index abc123..def456 100644
+  --- a/app/utils.py
+  +++ b/app/utils.py
+  @@ -1,3 +1,10 @@
+  +def process_data(items):
+  +    result = []
+  +    for item in items:
+  +        result.append(item * 2)
+  +    return result
+mock_risk_classification:
+  data_surface: none
+  integration_depth: none
+  vulnerability_surface: none
+  rationale: "Simple utility function, no risk signals."
+lint_result:
+  warnings: []
+  error_count: 0
+coverage_result:
+  coverage: 0.80
+  lines_covered: 160
+  lines_total: 200
+  source: stub
+expected_verdict: BLOCK
+expected_check_failed: RequireTestCoverage

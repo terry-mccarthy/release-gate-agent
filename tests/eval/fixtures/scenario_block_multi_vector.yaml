@@ -1,0 +1,28 @@
+name: scenario_block_multi_vector
+description: Prohibited dir AND critical lint — BLOCK at first check (prohibited dir wins)
+diff: |
+  diff --git a/src/billing/invoice.py b/src/billing/invoice.py
+  index abc123..def456 100644
+  --- a/src/billing/invoice.py
+  +++ b/src/billing/invoice.py
+  @@ -10,3 +10,5 @@ class Invoice:
+  +    def raw_query(self, user_id):
+  +        return db.execute(f"SELECT * FROM invoices WHERE user={user_id}")
+mock_risk_classification:
+  data_surface: high
+  integration_depth: none
+  vulnerability_surface: high
+  rationale: "Billing data with raw SQL injection surface."
+lint_result:
+  warnings:
+    - rule: sql-injection
+      message: "Raw SQL with user input in billing code"
+      severity: CRITICAL
+  error_count: 1
+coverage_result:
+  coverage: 0.92
+  lines_covered: 184
+  lines_total: 200
+  source: stub
+expected_verdict: BLOCK
+expected_check_failed: ProhibitedDirectories

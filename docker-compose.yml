@@ -1,0 +1,159 @@
+services:
+  postgres:
+    image: postgres:16
+    environment:
+      POSTGRES_DB: harness
+      POSTGRES_USER: harness
+      POSTGRES_PASSWORD: harness
+    ports: ["5432:5432"]
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U harness"]
+      interval: 5s
+      retries: 5
+
+  opa:
+    image: openpolicyagent/opa:latest
+    command: run --server --addr :8181 /policies
+    volumes:
+      - ./policies:/policies:ro
+    ports: ["8181:8181"]
+
+  dolt:
+    build:
+      context: ./services/dolt
+    ports: ["3306:3306"]
+    volumes:
+      - dolt-data:/doltdata
+    healthcheck:
+      test: ["CMD-SHELL", "mysql -h 127.0.0.1 -P 3306 -u root --connect-timeout=2 -e 'SELECT 1' 2>/dev/null || exit 1"]
+      interval: 5s
+      retries: 20
+      start_period: 60s
+
+  mcpjungle:
+    image: mcpjungle/mcpjungle:latest
+    ports: ["8080:8080"]
+    environment:
+      DATABASE_URL: postgres://harness:harness@postgres:5432/harness
+    depends_on:
+      postgres:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "/mcpjungle", "list", "servers", "--registry", "http://localhost:8080"]
+      interval: 5s
+      retries: 10
+
+  governance:
+    build:
+      context: ./services/governance
+    ports: ["8090:8090"]
+    environment:
+      JWT_SECRET: ${JWT_SECRET:-dev-jwt-secret-change-in-prod}
+      MCPJUNGLE_INTERNAL_URL: http://mcpjungle:8080
+      OPA_URL: http://opa:8181
+      VALIDATOR_SECRET: ${VALIDATOR_SECRET:-validator-secret}
+      DOLT_HOST: dolt
+      DOLT_PORT: "3306"
+      DOLT_USER: root
+      DOLT_PASSWORD: root
+      LOG_LEVEL: ${LOG_LEVEL:-INFO}
+    depends_on:
+      mcpjungle:
+        condition: service_healthy
+      opa:
+        condition: service_started
+      dolt:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "python -c \"import socket; s=socket.socket(); s.connect(('localhost',8090)); s.close()\""]
+      interval: 5s
+      retries: 10
+
+  linter-stub:
+    build:
+      context: ./stub_servers
+      dockerfile: Dockerfile.stub
+    command: python linter_server.py
+    ports: ["9002:9002"]
+    environment:
+      LOG_LEVEL: ${LOG_LEVEL:-INFO}
+    healthcheck:
+      test: ["CMD-SHELL", "python -c \"import socket; s=socket.socket(); s.connect(('localhost',9002)); s.close()\""]
+      interval: 5s
+      retries: 10
+
+  coverage-stub:
+    build:
+      context: ./stub_servers
+      dockerfile: Dockerfile.stub
+    command: python coverage_server.py
+    ports: ["9006:9006"]
+    environment:
+      LOG_LEVEL: ${LOG_LEVEL:-INFO}
+      STUB_COVERAGE_PCT: ${STUB_COVERAGE_PCT:-91.0}
+    healthcheck:
+      test: ["CMD-SHELL", "python -c \"import socket; s=socket.socket(); s.connect(('localhost',9006)); s.close()\""]
+      interval: 5s
+      retries: 10
+
+  validator-server:
+    build:
+      context: .
+      dockerfile: services/validator_server/Dockerfile
+    ports: ["9007:9007"]
+    environment:
+      GOVERNANCE_URL: http://governance:8090
+      VALIDATOR_SECRET: ${VALIDATOR_SECRET:-validator-secret}
+      LLM_PROVIDER: ${LLM_PROVIDER:-ollama}
+      OLLAMA_HOST: http://host.docker.internal:11434
+      OLLAMA_MODEL: ${OLLAMA_MODEL:-qwen2.5-coder:7b}
+      OLLAMA_NUM_CTX: ${OLLAMA_NUM_CTX:-8192}
+      LLM_TEMPERATURE: ${LLM_TEMPERATURE:-0.1}
+      LLM_MAX_TOKENS: ${LLM_MAX_TOKENS:-1024}
+      GEMINI_API_KEY: ${GEMINI_API_KEY:-}
+      GEMINI_MODEL: ${GEMINI_MODEL:-gemini-2.5-flash}
+      LOG_LEVEL: ${LOG_LEVEL:-INFO}
+    depends_on:
+      governance:
+        condition: service_healthy
+      linter-stub:
+        condition: service_healthy
+      coverage-stub:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "python -c \"import socket; s=socket.socket(); s.connect(('localhost',9007)); s.close()\""]
+      interval: 5s
+      retries: 10
+
+  register-linter:
+    image: mcpjungle/mcpjungle:latest
+    command: ["register", "--name", "linter_stub", "--url", "http://linter-stub:9002/mcp", "--registry", "http://mcpjungle:8080", "--force"]
+    depends_on:
+      mcpjungle:
+        condition: service_healthy
+      linter-stub:
+        condition: service_healthy
+    restart: "no"
+
+  register-coverage:
+    image: mcpjungle/mcpjungle:latest
+    command: ["register", "--name", "coverage_stub", "--url", "http://coverage-stub:9006/mcp", "--registry", "http://mcpjungle:8080", "--force"]
+    depends_on:
+      mcpjungle:
+        condition: service_healthy
+      coverage-stub:
+        condition: service_healthy
+    restart: "no"
+
+  register-validator:
+    image: mcpjungle/mcpjungle:latest
+    command: ["register", "--name", "validator_server", "--url", "http://validator-server:9007/mcp", "--registry", "http://mcpjungle:8080", "--force"]
+    depends_on:
+      mcpjungle:
+        condition: service_healthy
+      validator-server:
+        condition: service_healthy
+    restart: "no"
+
+volumes:
+  dolt-data:
