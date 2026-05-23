@@ -1,8 +1,0 @@
-pyproject.toml
-harness_gateway/__init__.py
-harness_gateway/client.py
-harness_gateway.egg-info/PKG-INFO
-harness_gateway.egg-info/SOURCES.txt
-harness_gateway.egg-info/dependency_links.txt
-harness_gateway.egg-info/requires.txt
-harness_gateway.egg-info/top_level.txt
