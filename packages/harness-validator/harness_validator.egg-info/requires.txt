@@ -1,0 +1,9 @@
+jsonschema>=4.22
+pyyaml>=6.0
+harness-gateway
+
+[gemini]
+google-genai
+
+[ollama]
+ollama>=0.3

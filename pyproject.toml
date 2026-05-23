@@ -1,6 +1,21 @@
 [tool.uv.workspace]
 members = ["packages/*"]
 
+[project]
+name = "rbcr"
+version = "0.1.0"
+requires-python = ">=3.12"
+dependencies = []
+
+[dependency-groups]
+dev = [
+    "pytest>=9",
+    "pytest-asyncio>=1.3",
+]
+
+[tool.uv.sources]
+harness-gateway = { workspace = true }
+
 [tool.pytest.ini_options]
 asyncio_mode = "auto"
 markers = [

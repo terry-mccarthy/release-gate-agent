@@ -1,17 +1,16 @@
 .PHONY: stack-up stack-down test-unit test-eval test-integration test install
 
 install:
-	pip install -e packages/harness-gateway -e packages/harness-validator \
-	    jsonschema pyyaml pytest pytest-asyncio
+	uv sync --all-packages
 
 test-unit:
-	pytest tests/unit/ -v
+	uv run pytest tests/unit/ -v
 
 test-eval:
-	pytest tests/eval/ -v -m eval
+	uv run pytest tests/eval/ -v -m eval
 
 test-integration:
-	pytest tests/integration/ -v -m integration
+	uv run pytest tests/integration/ -v -m integration
 
 test: test-unit test-eval
 
