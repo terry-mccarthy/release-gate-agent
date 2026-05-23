@@ -35,7 +35,7 @@ def map_to_risk_profile(classification: dict) -> str:
         return "Low"
     elif total <= 2:
         return "Medium"
-    elif total <= 4:
+    elif total <= 3:
         return "High"
     else:
         return "Severe"
