@@ -61,6 +61,53 @@ make stack-down    # tears everything down and removes volumes
 make logs          # tail all service logs
 ```
 
+### End-to-end smoke test
+
+After the stack is healthy, get a token and pipe a real git diff to the validator:
+
+```bash
+# 1. Get a bearer token
+TOKEN=$(curl -s -X POST http://localhost:8090/oauth/token \
+  -d grant_type=client_credentials \
+  -d client_id=deterministic-validator \
+  -d client_secret=validator-secret | jq -r .access_token)
+
+# 2. Validate a diff from your working tree
+jq -n \
+  --arg name "validator_server__validate_diff" \
+  --arg diff "$(git diff README.md)" \
+  '{name: $name, diff_text: $diff}' | \
+curl -s -X POST http://localhost:8090/api/v0/tools/invoke \
+  -H "Authorization: Bearer $TOKEN" \
+  -H "Content-Type: application/json" \
+  -d @-
+```
+
+The response contains the structured verdict:
+
+```json
+{
+  "verdict": "ALLOW",
+  "risk_profile": "Low",
+  "checks": [...],
+  "audit": { "policy_commit_hash": "...", "diff_lines": 45, ... }
+}
+```
+
+To test a BLOCK, target a prohibited directory like `src/auth`:
+
+```bash
+jq -n \
+  --arg name "validator_server__validate_diff" \
+  --arg diff "$(git diff src/auth/login.py)" \
+  '{name: $name, diff_text: $diff}' | \
+curl -s -X POST http://localhost:8090/api/v0/tools/invoke \
+  -H "Authorization: Bearer $TOKEN" \
+  -H "Content-Type: application/json" \
+  -d @-
+# Verdict will be "BLOCK"
+```
+
 Required environment variables for the governance server:
 
 | Variable | Default | Description |

@@ -5,6 +5,7 @@ from harness_validator.checker import (
     check_static_analysis,
     check_test_coverage,
     count_diff_lines,
+    is_docs_only_diff,
 )
 
 PROHIBITED = ["/src/auth", "/src/billing", "/kubernetes/iam"]
@@ -129,3 +130,39 @@ def test_coverage_well_above_passes():
     result = {"coverage": 0.95, "lines_covered": 190, "lines_total": 200}
     passed, _ = check_test_coverage(result, 0.85)
     assert passed
+
+
+# --- is_docs_only_diff ---
+
+def test_docs_only_md():
+    diff = "--- a/README.md\n+++ b/README.md\n+foo\n"
+    assert is_docs_only_diff(diff)
+
+
+def test_docs_only_rst():
+    diff = "--- a/docs/guide.rst\n+++ b/docs/guide.rst\n+foo\n"
+    assert is_docs_only_diff(diff)
+
+
+def test_docs_only_multiple_doc_files():
+    diff = "--- a/README.md\n+++ b/README.md\n+foo\n--- a/CHANGELOG.md\n+++ b/CHANGELOG.md\n+bar\n"
+    assert is_docs_only_diff(diff)
+
+
+def test_docs_only_false_for_py():
+    diff = "--- a/app.py\n+++ b/app.py\n+foo\n"
+    assert not is_docs_only_diff(diff)
+
+
+def test_docs_only_mixed_doc_and_code():
+    diff = "--- a/README.md\n+++ b/README.md\n+foo\n--- a/app.py\n+++ b/app.py\n+bar\n"
+    assert not is_docs_only_diff(diff)
+
+
+def test_docs_only_empty_diff():
+    assert not is_docs_only_diff("")
+
+
+def test_docs_only_no_touched_files():
+    diff = " context line\n another context line\n"
+    assert not is_docs_only_diff(diff)

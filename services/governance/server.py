@@ -108,7 +108,8 @@ async def invoke(
 
     # 3. Write audit + deny
     if not allowed:
-        _write_audit(claims["sub"], full_tool, short_tool, json.dumps(body), None, "deny", rule, 0)
+        deny_hash = hashlib.sha256(json.dumps(body, sort_keys=True).encode()).hexdigest()[:16]
+        _write_audit(claims["sub"], full_tool, short_tool, deny_hash, None, "deny", rule, 0)
         raise HTTPException(403, "policy_denied")
 
     # 4. Forward to MCPJungle

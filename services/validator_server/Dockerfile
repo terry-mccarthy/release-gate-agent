@@ -8,7 +8,7 @@ RUN pip install -r requirements.txt
 # Install harness packages as proper packages
 COPY packages/harness-gateway ./packages/harness-gateway
 COPY packages/harness-validator ./packages/harness-validator
-RUN pip install ./packages/harness-gateway ./packages/harness-validator
+RUN pip install ./packages/harness-gateway "./packages/harness-validator[ollama]"
 
 # Copy policy + prompts so the agent can load them at runtime
 COPY policies/release_policy.yaml ./policies/release_policy.yaml

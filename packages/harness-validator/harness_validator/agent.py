@@ -61,13 +61,16 @@ class DeterministicValidatorAgent:
 
         # Step 3: LLM risk classification
         linter_findings = lint_result.get("warnings", [])
-        try:
-            risk_profile, _classification = await classifier.classify_risk(
-                diff_text, linter_findings, self.llm, self._system_prompt
-            )
-        except RuntimeError as e:
-            logger.error("risk classification failed: %s", e)
-            return {**state, "error": {"code": "classification_failed", "reason": str(e)}}
+        if checker.is_docs_only_diff(diff_text):
+            risk_profile = "Low"
+        else:
+            try:
+                risk_profile, _classification = await classifier.classify_risk(
+                    diff_text, linter_findings, self.llm, self._system_prompt
+                )
+            except RuntimeError as e:
+                logger.error("risk classification failed: %s", e)
+                return {**state, "error": {"code": "classification_failed", "reason": str(e)}}
 
         # Step 4: High/Severe → escalate immediately
         if risk_profile in ("High", "Severe"):

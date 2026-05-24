@@ -1,3 +1,6 @@
+from pathlib import Path
+
+
 def count_diff_lines(diff_text: str) -> int:
     """Count added + removed lines (+ or - prefix), excluding +++ and --- headers."""
     return sum(
@@ -51,6 +54,22 @@ def check_static_analysis(linter_result: dict) -> tuple[bool, str]:
         )
         return False, f"Static analysis blockers: {msgs}"
     return True, "Zero Critical, Zero High vulnerabilities"
+
+
+_DOC_EXTENSIONS = {".md", ".rst", ".txt", ".adoc", ".org"}
+
+
+def is_docs_only_diff(diff_text: str) -> bool:
+    """Return True if every touched file in the diff is a documentation file."""
+    touched = []
+    for line in diff_text.splitlines():
+        if line.startswith("+++ b/") or line.startswith("--- a/"):
+            path = line[6:]
+            ext = Path(path).suffix.lower()
+            touched.append(ext)
+    if not touched:
+        return False
+    return all(ext in _DOC_EXTENSIONS for ext in touched)
 
 
 def check_test_coverage(

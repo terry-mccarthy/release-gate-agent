@@ -124,10 +124,21 @@ async def test_block_low_coverage(mock_gateway, release_policy):
 
 # --- ESCALATE: high risk ---
 
+PY_DIFF = """\
+diff --git a/app.py b/app.py
+index abc..def 100644
+--- a/app.py
++++ b/app.py
+@@ -1 +1,2 @@
+ def hello():
++    return "world"
+"""
+
+
 async def test_escalate_high_risk(mock_gateway, release_policy):
     llm = make_mock_llm(HIGH_RISK_CLASSIFICATION)
     agent = make_agent(mock_gateway, llm, release_policy)
-    result = await agent.run(make_state(CLEAN_DIFF))
+    result = await agent.run(make_state(PY_DIFF))
     assert result["agent_output"]["verdict"] == "ESCALATE"
     assert result["requires_human_approval"] is True
     assert result["agent_output"]["risk_profile"] in ("High", "Severe")
@@ -136,7 +147,7 @@ async def test_escalate_high_risk(mock_gateway, release_policy):
 async def test_escalate_does_not_call_coverage(mock_gateway, release_policy):
     llm = make_mock_llm(HIGH_RISK_CLASSIFICATION)
     agent = make_agent(mock_gateway, llm, release_policy)
-    await agent.run(make_state(CLEAN_DIFF))
+    await agent.run(make_state(PY_DIFF))
     called_tools = [c.args[0] for c in mock_gateway.call_tool.call_args_list]
     assert "coverage_report" not in called_tools
 
@@ -160,6 +171,16 @@ async def test_output_validates_against_schema(mock_gateway, release_policy):
     agent = make_agent(mock_gateway, llm, release_policy)
     result = await agent.run(make_state(CLEAN_DIFF))
     jsonschema.validate(result["agent_output"], VALIDATOR_OUTPUT_SCHEMA)
+
+
+async def test_docs_only_diff_skips_llm_and_returns_low(mock_gateway, release_policy):
+    """A diff touching only docs files should skip the LLM and default to Low risk."""
+    llm = make_mock_llm(HIGH_RISK_CLASSIFICATION)  # would escalate if called
+    agent = make_agent(mock_gateway, llm, release_policy)
+    result = await agent.run(make_state(CLEAN_DIFF))
+    assert result["agent_output"]["verdict"] == "ALLOW"
+    assert result["agent_output"]["risk_profile"] == "Low"
+    llm.chat.assert_not_called()
 
 
 async def test_audit_contains_policy_hash(mock_gateway, release_policy):
