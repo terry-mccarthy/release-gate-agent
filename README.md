@@ -156,3 +156,17 @@ make test-integration  # requires running Docker stack
 ```
 
 Eval fixtures are in `tests/eval/fixtures/`. Each fixture specifies a diff, mock LLM classification, tool responses, and expected verdict/risk profile — making the eval suite deterministic and fast.
+
+## Future enhancements
+
+### Architecture diagram
+Add a high-fidelity system diagram at the top of this README showing the request flow through governance, OPA, MCPJungle, Dolt, and the stub servers.
+
+### Policy-as-code directory with versioned schemas
+Extend `policies/` with versioned YAML schemas (e.g. `soc2-cc8.1.yaml`) that define thresholds, approved reviewers, and audit timestamps — making the policy engine fully auditable by SOC 2 reviewers.
+
+### Compliance manifest artifact
+Output a structured `compliance-manifest.json` after every validation run containing the commit SHA, policy version applied, per-check verdicts, and final gate status. This is the artifact handed to auditors.
+
+### Emergency override (break-glass protocol)
+Document and implement a human-in-the-loop escape hatch: a cryptographically signed approval from a designated team can override a BLOCK, with the override flagged in the Dolt audit log for retroactive review.
