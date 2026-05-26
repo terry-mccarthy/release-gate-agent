@@ -113,22 +113,22 @@ def test_static_analysis_empty_passes():
 # --- check_test_coverage ---
 
 def test_coverage_at_threshold_passes():
-    result = {"coverage": 0.85, "lines_covered": 170, "lines_total": 200}
-    passed, detail = check_test_coverage(result, 0.85)
+    result = {"coverage": 0.90, "lines_covered": 180, "lines_total": 200}
+    passed, detail = check_test_coverage(result, 0.90)
     assert passed
-    assert "85.0%" in detail
+    assert "90.0%" in detail
 
 
 def test_coverage_below_threshold_blocks():
-    result = {"coverage": 0.849, "lines_covered": 169, "lines_total": 200}
-    passed, detail = check_test_coverage(result, 0.85)
+    result = {"coverage": 0.899, "lines_covered": 179, "lines_total": 200}
+    passed, detail = check_test_coverage(result, 0.90)
     assert not passed
-    assert "84.9%" in detail
+    assert "89.9%" in detail
 
 
 def test_coverage_well_above_passes():
     result = {"coverage": 0.95, "lines_covered": 190, "lines_total": 200}
-    passed, _ = check_test_coverage(result, 0.85)
+    passed, _ = check_test_coverage(result, 0.90)
     assert passed
 
 

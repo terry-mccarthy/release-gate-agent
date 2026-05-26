@@ -9,7 +9,7 @@ class ReleasePolicy:
     version: str
     allowed_risk_profiles: list[str]
     maximum_diff_lines: int
-    require_test_coverage: float   # e.g. 0.85
+    require_test_coverage: float   # e.g. 0.90
     prohibited_directories: list[str]
     static_analysis_threshold: str
     raw_hash: str                  # SHA-256 of raw YAML bytes
@@ -20,7 +20,7 @@ def load_policy(path: Path) -> ReleasePolicy:
     content_hash = hashlib.sha256(raw).hexdigest()
     data = yaml.safe_load(raw)
 
-    # Parse ">= 85%" → 0.85
+    # Parse ">= 90%" → 0.90
     coverage_str = str(data["RequireTestCoverage"])
     coverage_val = float(
         coverage_str.replace(">=", "").replace(">", "").replace("%", "").strip()

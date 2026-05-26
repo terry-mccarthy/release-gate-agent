@@ -23,12 +23,12 @@ def test_coverage_threshold_parsed(tmp_path):
 version: "Test Policy"
 AllowedRiskProfiles: [Low]
 MaximumDiffLines: 100
-RequireTestCoverage: ">= 85%"
+RequireTestCoverage: ">= 90%"
 ProhibitedDirectories: ["/src/auth"]
 StaticAnalysisThreshold: "Zero Critical"
 """)
     policy = load_policy(f)
-    assert abs(policy.require_test_coverage - 0.85) < 1e-9
+    assert abs(policy.require_test_coverage - 0.90) < 1e-9
 
 
 def test_raw_hash_changes_on_edit(tmp_path):
@@ -37,7 +37,7 @@ def test_raw_hash_changes_on_edit(tmp_path):
 version: "v1"
 AllowedRiskProfiles: [Low]
 MaximumDiffLines: 100
-RequireTestCoverage: ">= 85%"
+RequireTestCoverage: ">= 90%"
 ProhibitedDirectories: ["/src/auth"]
 StaticAnalysisThreshold: "Zero Critical"
 """)

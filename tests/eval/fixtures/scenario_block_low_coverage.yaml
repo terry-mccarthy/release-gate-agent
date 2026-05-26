@@ -1,5 +1,5 @@
 name: scenario_block_low_coverage
-description: Test coverage at 80%, below 85% threshold — must BLOCK
+description: Test coverage at 80%, below 90% threshold — must BLOCK
 diff: |
   diff --git a/app/utils.py b/app/utils.py
   index abc123..def456 100644

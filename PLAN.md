@@ -194,7 +194,7 @@ allow if {
 version: "Release Agent Policy v2.4"
 AllowedRiskProfiles: [Low, Medium]
 MaximumDiffLines: 350
-RequireTestCoverage: ">= 85%"
+RequireTestCoverage: ">= 90%"
 ProhibitedDirectories:
   - "/src/auth"
   - "/src/billing"

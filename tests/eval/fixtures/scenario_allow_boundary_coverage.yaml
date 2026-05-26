@@ -17,7 +17,7 @@ lint_result:
   warnings: []
   error_count: 0
 coverage_result:
-  coverage: 0.85
+  coverage: 0.90
   lines_covered: 170
   lines_total: 200
   source: stub

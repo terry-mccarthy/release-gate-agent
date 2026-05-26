@@ -51,7 +51,7 @@ This layer defines the rigid mathematical and procedural boundaries for what can
   
 - AllowedRiskProfiles: [Low, Medium]  
 - MaximumDiffLines: 350  
-- RequireTestCoverage: ">= 85%"  
+- RequireTestCoverage: ">= 90%"  
 - ProhibitedDirectories: ["/src/auth", "/src/billing", "/kubernetes/iam"]  
 - StaticAnalysisThreshold: "Zero Critical, Zero High Vulnerabilities"  
 ```
